@@ -1,3 +1,3 @@
 # Summer_practice_project
 
-![alt text](image.png)
+![alt text](KYZA_Lakomkin.png)
