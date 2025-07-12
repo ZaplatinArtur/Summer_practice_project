@@ -10,6 +10,35 @@ def _ensure_tensor(img):
         return transforms.ToTensor()(img)
     return img
 
+
+def show_image(image, label=None, title=None, size=128):
+    """Визуализирует одно изображение."""
+    # Конвертируем изображение в тензор
+    image = _ensure_tensor(image)
+    
+    # Ресайз изображения
+    resize_transform = transforms.Resize((size, size), antialias=True)
+    image_resized = resize_transform(image)
+    
+    # Преобразуем тензор в numpy array и меняем порядок размерностей
+    img_np = image_resized.numpy().transpose(1, 2, 0)
+    img_np = np.clip(img_np, 0, 1)  # Обеспечиваем корректный диапазон значений
+    
+    # Создаем фигуру и оси
+    plt.figure(figsize=(4, 4))
+    plt.imshow(img_np)
+    plt.axis('off')  # Скрываем оси
+    
+    # Добавляем заголовки при необходимости
+    if label is not None:
+        plt.title(f'Label: {label}', fontsize=12)
+    if title:
+        plt.suptitle(title, fontsize=14)
+    
+    plt.tight_layout()
+    plt.show()
+
+
 def show_images(images, labels=None, nrow=8, title=None, size=128):
     """Визуализирует батч изображений."""
     # Конвертируем все изображения в тензоры
