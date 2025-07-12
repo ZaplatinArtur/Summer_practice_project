@@ -12,6 +12,7 @@ class AddGaussianNoise:
     def __call__(self, tensor):
         return tensor + torch.randn_like(tensor) * self.std + self.mean
 
+
 class RandomErasingCustom:
     """Случайно затирает прямоугольную область изображения."""
     def __init__(self, p=0.5, scale=(0.02, 0.2)):
@@ -30,6 +31,7 @@ class RandomErasingCustom:
         img[:, y:y+erase_h, x:x+erase_w] = 0
         return img
 
+
 class CutOut:
     """Вырезает случайную прямоугольную область из изображения."""
     def __init__(self, p=0.5, size=(16, 16)):
@@ -45,6 +47,7 @@ class CutOut:
         img[:, y:y+cut_h, x:x+cut_w] = 0
         return img
 
+
 class Solarize:
     """Инвертирует пиксели выше порога."""
     def __init__(self, threshold=128):
@@ -54,6 +57,7 @@ class Solarize:
         mask = img_np > self.threshold / 255.0
         img_np[mask] = 1.0 - img_np[mask]
         return torch.from_numpy(img_np)
+
 
 class Posterize:
     """Уменьшает количество бит на канал."""
@@ -65,6 +69,7 @@ class Posterize:
         img_np = (img_np * 255).astype(np.uint8)
         img_np = (img_np // factor) * factor
         return torch.from_numpy(img_np.astype(np.float32) / 255.0)
+
 
 class AutoContrast:
     """Автоматически улучшает контраст изображения."""
@@ -78,6 +83,7 @@ class AutoContrast:
         img_pil = ImageOps.autocontrast(img_pil)
         img_np = np.array(img_pil).astype(np.float32) / 255.0
         return torch.from_numpy(img_np.transpose(2, 0, 1))
+
 
 class ElasticTransform:
     """Эластичная деформация изображения."""
@@ -112,6 +118,7 @@ class ElasticTransform:
         img_deformed = cv2.remap(img_np, x.astype(np.float32), y.astype(np.float32), 
                                 cv2.INTER_LINEAR)
         return torch.from_numpy(img_deformed.transpose(2, 0, 1))
+
 
 class MixUp:
     """Смешивает два изображения."""
