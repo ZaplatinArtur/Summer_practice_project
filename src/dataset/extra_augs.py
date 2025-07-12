@@ -1,8 +1,10 @@
+from matplotlib import transforms
 import torch
 import random
 import numpy as np
 import cv2
 from PIL import Image, ImageEnhance, ImageOps
+
 
 class AddGaussianNoise:
     """Добавляет гауссов шум к изображению."""
@@ -130,3 +132,84 @@ class MixUp:
             return img1
         lam = np.random.beta(self.alpha, self.alpha)
         return lam * img1 + (1 - lam) * img2 
+
+
+class RandomBlur:
+    """Случайное размытие изображения"""
+    def __init__(self, p=0.5, kernel_size=5):
+        self.p = p
+        self.kernel_size = kernel_size
+    
+    def __call__(self, img):
+        if random.random() < self.p:
+            # Конвертируем тензор в numpy
+            img_np = img.numpy().transpose(1, 2, 0)
+            # Применяем размытие
+            blurred = cv2.GaussianBlur(img_np, (self.kernel_size, self.kernel_size), 0)
+            return torch.from_numpy(blurred.transpose(2, 0, 1))
+        return img
+
+
+class RandomPerspective:
+    """Случайная перспективная трансформация"""
+    def __init__(self, p=0.5, distortion_scale=0.5):
+        self.p = p
+        self.distortion_scale = distortion_scale
+    
+    def __call__(self, img):
+        if random.random() < self.p:
+            # Конвертируем тензор в PIL
+            to_pil = transforms.ToPILImage()
+            img_pil = to_pil(img)
+            
+            # Параметры перспективы
+            w, h = img_pil.size
+            half_w = w // 2
+            half_h = h // 2
+            
+            # Генерируем случайные смещения
+            dx = random.randint(0, int(self.distortion_scale * half_w))
+            dy = random.randint(0, int(self.distortion_scale * half_h))
+            
+            # Точки для перспективной трансформации
+            src_points = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+            dst_points = np.float32([
+                [dx, dy], 
+                [w - dx, dy], 
+                [0, h], 
+                [w, h]
+            ])
+            
+            # Применяем перспективную трансформацию
+            M = cv2.getPerspectiveTransform(src_points, dst_points)
+            img_np = np.array(img_pil)
+            transformed = cv2.warpPerspective(img_np, M, (w, h))
+            
+            return transforms.ToTensor()(transformed)
+        return img
+
+class RandomBrightnessContrast:
+    """Случайное изменение яркости и контрастности"""
+    def __init__(self, p=0.5, brightness_range=(0.7, 1.3), contrast_range=(0.7, 1.3)):
+        self.p = p
+        self.brightness_range = brightness_range
+        self.contrast_range = contrast_range
+    
+    def __call__(self, img):
+        if random.random() < self.p:
+            # Конвертируем тензор в PIL
+            to_pil = transforms.ToPILImage()
+            img_pil = to_pil(img)
+            
+            # Изменяем яркость
+            brightness_factor = random.uniform(*self.brightness_range)
+            enhancer = ImageEnhance.Brightness(img_pil)
+            img_pil = enhancer.enhance(brightness_factor)
+            
+            # Изменяем контраст
+            contrast_factor = random.uniform(*self.contrast_range)
+            enhancer = ImageEnhance.Contrast(img_pil)
+            img_pil = enhancer.enhance(contrast_factor)
+            
+            return transforms.ToTensor()(img_pil)
+        return img
