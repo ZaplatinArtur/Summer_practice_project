@@ -67,8 +67,8 @@ def predict_image(model: nn.Module, image_path: str, device: str = 'cuda' if tor
 
 def main():
     # Параметры
-    model_path = "/kaggle/working/model_20.pth"
-    image_path = "/kaggle/input/dataset-nato-final/dataset_augmentation/test/leopard/leopard_20.jpg"  # Укажите путь к изображению
+    model_path = ...#путь до модели
+    image_path = ...  # Укажите путь к изображению
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # Загрузка модели
